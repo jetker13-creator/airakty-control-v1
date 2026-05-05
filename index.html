@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Айракты — Аудит Яндекс</title>
+    <style>
+      :root {
+        --bg: #f3f5f8;
+        --card: #fff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --primary: #2563eb;
+        --danger: #b91c1c;
+        --success: #0f766e;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+      .container { max-width: 1340px; margin: 24px auto 40px; padding: 0 14px; }
+      h1 { margin: 0 0 8px; }
+      h2 { margin: 24px 0 10px; }
+      .subtitle { color: var(--muted); margin-bottom: 16px; }
+      .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+      .form-grid { display: grid; gap: 8px; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      .form-grid + .form-grid { margin-top: 8px; }
+      @media (max-width: 1100px) { .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      @media (max-width: 650px) { .form-grid { grid-template-columns: 1fr; } }
+      input, select, button { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px; font-size: 14px; }
+      button { border: none; cursor: pointer; background: var(--primary); color: #fff; font-weight: 600; }
+      .danger { background: var(--danger); }
+      .secondary { background: #374151; }
+      .btn-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+      .summary { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+      .label { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+      .value { font-size: 22px; font-weight: 700; }
+      .table-wrap { overflow: auto; }
+      table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+      th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); font-size: 13px; white-space: nowrap; }
+      th { background: #f9fafb; }
+      tr:last-child td { border-bottom: none; }
+      .ok { color: var(--success); font-weight: 700; }
+      .problem { color: var(--danger); font-weight: 700; }
+      tr.problem-row { background: #fff1f2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Айракты — Аудит Яндекс</h1>
+      <div class="subtitle">Только аудит отчетов Яндекс (с 11.09.2025): проверка 2% и выплат таксопарку.</div>
+
+      <h2>Ручной ввод строки отчета</h2>
+      <section class="card">
+        <div class="form-grid">
+          <input id="date" type="date" />
+          <input id="month" type="month" />
+          <input id="driver" type="text" placeholder="Водитель" />
+          <input id="car" type="text" placeholder="Машина" />
+          <input id="coopType" type="text" placeholder="Тип сотрудничества" />
+        </div>
+        <div class="form-grid">
+          <input id="orders" type="number" min="0" step="1" placeholder="Количество заказов" />
+          <input id="turnover" type="number" min="0" step="0.01" placeholder="Оборот Яндекс" />
+          <input id="accruedPark" type="number" min="0" step="0.01" placeholder="Начислено таксопарку" />
+          <input id="paidPark" type="number" min="0" step="0.01" placeholder="Выплата таксопарку" />
+          <input id="paidDriver" type="number" min="0" step="0.01" placeholder="Выплата водителю" />
+        </div>
+        <div class="form-grid">
+          <input id="commissionYandex" type="number" min="0" step="0.01" placeholder="Комиссия Яндекс" />
+          <input id="withholdings" type="number" min="0" step="0.01" placeholder="Удержания" />
+          <input id="adjustments" type="number" min="0" step="0.01" placeholder="Корректировки" />
+          <input id="loan" type="number" min="0" step="0.01" placeholder="Займ" />
+          <input id="comment" type="text" placeholder="Комментарий" />
+        </div>
+        <div class="btn-row">
+          <button id="addBtn">Добавить строку</button>
+          <button id="csvBtn" class="secondary">Экспорт CSV</button>
+          <button id="clearBtn" class="danger">Очистить все данные</button>
+        </div>
+      </section>
+
+      <h2>Фильтры</h2>
+      <section class="card">
+        <div class="form-grid">
+          <input id="filterDateFrom" type="date" />
+          <input id="filterDateTo" type="date" />
+          <input id="filterMonth" type="month" />
+          <input id="filterDriver" type="text" placeholder="Водитель" />
+          <input id="filterCar" type="text" placeholder="Машина" />
+        </div>
+        <div class="form-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top:8px;">
+          <input id="filterCoop" type="text" placeholder="Тип сотрудничества" />
+          <select id="filterStatus">
+            <option value="">Статус: все</option>
+            <option value="OK">OK</option>
+            <option value="Проверить">Проверить</option>
+          </select>
+        </div>
+      </section>
+
+      <h2>Итоги</h2>
+      <section id="summary" class="summary"></section>
+
+      <h2>Общий отчет</h2>
+      <div class="table-wrap"><table><thead><tr>
+        <th>Дата</th><th>Месяц</th><th>Водитель</th><th>Машина</th><th>Тип сотрудничества</th><th>Заказы</th>
+        <th>Оборот Яндекс</th><th>Начислено ТП</th><th>Выплата ТП</th><th>Выплата водителю</th><th>Комиссия Яндекс</th>
+        <th>Удержания</th><th>Корректировки</th><th>Займ</th><th>Ожидаемо 2%</th><th>Факт %</th><th>Разница</th><th>Статус</th><th>Комментарий</th>
+      </tr></thead><tbody id="reportBody"></tbody></table></div>
+
+      <h2>Итоги по месяцу</h2>
+      <div class="table-wrap"><table><thead><tr><th>Месяц</th><th>Оборот</th><th>Начислено</th><th>Ожидаемо 2%</th><th>Разница</th></tr></thead><tbody id="monthBody"></tbody></table></div>
+
+      <h2>Итоги по водителю</h2>
+      <div class="table-wrap"><table><thead><tr><th>Водитель</th><th>Оборот</th><th>Начислено</th><th>Ожидаемо 2%</th><th>Разница</th></tr></thead><tbody id="driverBody"></tbody></table></div>
+
+      <h2>Итоги по машине</h2>
+      <div class="table-wrap"><table><thead><tr><th>Машина</th><th>Оборот</th><th>Начислено</th><th>Ожидаемо 2%</th><th>Разница</th></tr></thead><tbody id="carBody"></tbody></table></div>
+
+      <h2>Проблемные строки (разница &lt; 0)</h2>
+      <div class="table-wrap"><table><thead><tr><th>Дата</th><th>Водитель</th><th>Машина</th><th>Оборот</th><th>Начислено</th><th>Ожидаемо</th><th>Разница</th></tr></thead><tbody id="problemBody"></tbody></table></div>
+    </div>
+
+    <script>
+      const PARK_PERCENT = 2;
+      const MIN_DATE = '2025-09-11';
+      const STORAGE_KEY = 'airakty_yandex_audit_v1';
+      const $ = (id) => document.getElementById(id);
+      const money = (n) => `${Number(n || 0).toLocaleString('ru-RU', { maximumFractionDigits: 2 })} ₸`;
+      const pct = (n) => `${Number(n || 0).toFixed(2)}%`;
+
+      const state = { rows: JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') };
+
+      const compute = (row) => {
+        const turnover = Number(row.turnover) || 0;
+        const accrued = Number(row.accruedPark) || 0;
+        const expected = turnover * PARK_PERCENT / 100;
+        const actualPercent = turnover > 0 ? (accrued / turnover) * 100 : 0;
+        const diff = accrued - expected;
+        const status = diff < 0 ? 'Проверить' : 'OK';
+        return { ...row, expected, actualPercent, diff, status };
+      };
+
+      const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state.rows));
+
+      function filteredRows() {
+        const from = $('filterDateFrom').value;
+        const to = $('filterDateTo').value;
+        const month = $('filterMonth').value;
+        const driver = $('filterDriver').value.trim().toLowerCase();
+        const car = $('filterCar').value.trim().toLowerCase();
+        const coop = $('filterCoop').value.trim().toLowerCase();
+        const status = $('filterStatus').value;
+
+        return state.rows.map(compute).filter((r) => {
+          if (from && r.date < from) return false;
+          if (to && r.date > to) return false;
+          if (month && r.month !== month) return false;
+          if (driver && !r.driver.toLowerCase().includes(driver)) return false;
+          if (car && !r.car.toLowerCase().includes(car)) return false;
+          if (coop && !r.coopType.toLowerCase().includes(coop)) return false;
+          if (status && r.status !== status) return false;
+          return true;
+        });
+      }
+
+      function totals(rows) {
+        return rows.reduce((a, r) => {
+          a.turnover += Number(r.turnover) || 0;
+          a.accrued += Number(r.accruedPark) || 0;
+          a.paidPark += Number(r.paidPark) || 0;
+          a.paidDriver += Number(r.paidDriver) || 0;
+          a.commission += Number(r.commissionYandex) || 0;
+          a.withholdings += Number(r.withholdings) || 0;
+          a.adjustments += Number(r.adjustments) || 0;
+          a.loan += Number(r.loan) || 0;
+          a.expected += r.expected;
+          a.lost += r.diff < 0 ? Math.abs(r.diff) : 0;
+          return a;
+        }, { turnover: 0, accrued: 0, paidPark: 0, paidDriver: 0, commission: 0, withholdings: 0, adjustments: 0, loan: 0, expected: 0, lost: 0 });
+      }
+
+      function groupBy(rows, key) {
+        const map = {};
+        rows.forEach((r) => {
+          const k = r[key] || '—';
+          if (!map[k]) map[k] = { turnover: 0, accrued: 0, expected: 0, diff: 0 };
+          map[k].turnover += Number(r.turnover) || 0;
+          map[k].accrued += Number(r.accruedPark) || 0;
+          map[k].expected += r.expected;
+          map[k].diff += r.diff;
+        });
+        return Object.entries(map).sort((a, b) => a[0].localeCompare(b[0], 'ru'));
+      }
+
+      function render() {
+        const rows = filteredRows();
+        const t = totals(rows);
+        const avg = t.turnover > 0 ? (t.accrued / t.turnover) * 100 : 0;
+
+        $('summary').innerHTML = [
+          ['Общий оборот Яндекс', money(t.turnover)],
+          ['Всего начислено таксопарку', money(t.accrued)],
+          ['Всего выплачено таксопарку', money(t.paidPark)],
+          ['Всего выплачено водителям', money(t.paidDriver)],
+          ['Всего комиссия Яндекс', money(t.commission)],
+          ['Всего удержания', money(t.withholdings)],
+          ['Всего корректировки', money(t.adjustments)],
+          ['Всего займ', money(t.loan)],
+          ['Ожидаемый доход ТП по 2%', money(t.expected)],
+          ['Фактический средний процент', pct(avg)],
+          ['Недополученная сумма', money(t.lost)]
+        ].map(([l, v]) => `<div class="card"><div class="label">${l}</div><div class="value">${v}</div></div>`).join('');
+
+        $('reportBody').innerHTML = rows.map((r) => `
+          <tr class="${r.diff < 0 ? 'problem-row' : ''}">
+            <td>${r.date}</td><td>${r.month}</td><td>${r.driver}</td><td>${r.car}</td><td>${r.coopType}</td><td>${r.orders}</td>
+            <td>${money(r.turnover)}</td><td>${money(r.accruedPark)}</td><td>${money(r.paidPark)}</td><td>${money(r.paidDriver)}</td>
+            <td>${money(r.commissionYandex)}</td><td>${money(r.withholdings)}</td><td>${money(r.adjustments)}</td><td>${money(r.loan)}</td>
+            <td>${money(r.expected)}</td><td>${pct(r.actualPercent)}</td><td class="${r.diff < 0 ? 'problem' : 'ok'}">${money(r.diff)}</td><td class="${r.status === 'OK' ? 'ok' : 'problem'}">${r.status}</td><td>${r.comment || ''}</td>
+          </tr>
+        `).join('');
+
+        [['month', 'monthBody'], ['driver', 'driverBody'], ['car', 'carBody']].forEach(([key, body]) => {
+          $(body).innerHTML = groupBy(rows, key).map(([name, v]) => `
+            <tr><td>${name}</td><td>${money(v.turnover)}</td><td>${money(v.accrued)}</td><td>${money(v.expected)}</td><td class="${v.diff < 0 ? 'problem' : 'ok'}">${money(v.diff)}</td></tr>
+          `).join('');
+        });
+
+        $('problemBody').innerHTML = rows.filter((r) => r.diff < 0).map((r) => `
+          <tr class="problem-row"><td>${r.date}</td><td>${r.driver}</td><td>${r.car}</td><td>${money(r.turnover)}</td><td>${money(r.accruedPark)}</td><td>${money(r.expected)}</td><td class="problem">${money(r.diff)}</td></tr>
+        `).join('');
+      }
+
+      function addRow() {
+        const row = {
+          date: $('date').value,
+          month: $('month').value,
+          driver: $('driver').value.trim(),
+          car: $('car').value.trim(),
+          coopType: $('coopType').value.trim(),
+          orders: Number($('orders').value) || 0,
+          turnover: Number($('turnover').value) || 0,
+          accruedPark: Number($('accruedPark').value) || 0,
+          paidPark: Number($('paidPark').value) || 0,
+          paidDriver: Number($('paidDriver').value) || 0,
+          commissionYandex: Number($('commissionYandex').value) || 0,
+          withholdings: Number($('withholdings').value) || 0,
+          adjustments: Number($('adjustments').value) || 0,
+          loan: Number($('loan').value) || 0,
+          comment: $('comment').value.trim()
+        };
+
+        if (!row.date || row.date < MIN_DATE || !row.month || !row.driver || !row.car || row.turnover <= 0) {
+          alert('Проверьте поля: дата не раньше 11.09.2025, месяц/водитель/машина обязательны, оборот > 0.');
+          return;
+        }
+
+        state.rows.push(row);
+        save();
+        render();
+      }
+
+      function exportCsv() {
+        const headers = ['дата','месяц','водитель','машина','тип сотрудничества','заказы','оборот','начислено тп','выплата тп','выплата водителю','комиссия яндекс','удержания','корректировки','займ','комментарий','ожидаемо 2%','факт %','разница','статус'];
+        const lines = state.rows.map(compute).map((r) => [
+          r.date, r.month, r.driver, r.car, r.coopType, r.orders, r.turnover, r.accruedPark, r.paidPark, r.paidDriver, r.commissionYandex, r.withholdings, r.adjustments, r.loan, r.comment || '', r.expected.toFixed(2), r.actualPercent.toFixed(4), r.diff.toFixed(2), r.status
+        ].map((v) => `"${String(v).replaceAll('"', '""')}"`).join(','));
+
+        const csv = '\uFEFF' + [headers.join(','), ...lines].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'airakty_yandex_audit.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      $('addBtn').addEventListener('click', addRow);
+      $('csvBtn').addEventListener('click', exportCsv);
+      $('clearBtn').addEventListener('click', () => {
+        if (!confirm('Удалить все данные аудита?')) return;
+        state.rows = [];
+        save();
+        render();
+      });
+
+      ['filterDateFrom','filterDateTo','filterMonth','filterDriver','filterCar','filterCoop','filterStatus'].forEach((id) => {
+        $(id).addEventListener('input', render);
+        $(id).addEventListener('change', render);
+      });
+
+      render();
+    </script>
+  </body>
+</html>
