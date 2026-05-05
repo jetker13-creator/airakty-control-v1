@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Айракты — Аудит Яндекс</title>
+    <style>
+      :root {
+        --bg: #f4f6f9;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --accent: #2563eb;
+        --ok: #0f766e;
+        --warn: #b91c1c;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      }
+      .container { max-width: 1320px; margin: 24px auto 36px; padding: 0 14px; }
+      h1 { margin: 0 0 8px; }
+      h2 { margin: 26px 0 12px; font-size: 22px; }
+      .subtitle { color: var(--muted); margin-bottom: 18px; }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 10px;
+      }
+      .label { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+      .value { font-size: 22px; font-weight: 700; }
+      .row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+      .row + .row { margin-top: 8px; }
+      @media (max-width: 1060px) {
+        .row { grid-template-columns: repeat(2, 1fr); }
+      }
+      @media (max-width: 620px) {
+        .row { grid-template-columns: 1fr; }
+      }
+      input, select, button {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 9px 10px;
+        font-size: 14px;
+        background: #fff;
+      }
+      button {
+        cursor: pointer;
+        background: var(--accent);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+      }
+      .btn-secondary { background: #374151; }
+      .btn-danger { background: var(--warn); }
+      .btn-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+      .table-wrap { overflow: auto; }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); font-size: 13px; white-space: nowrap; }
+      th { background: #f9fafb; }
+      tr:last-child td { border-bottom: none; }
+      .ok { color: var(--ok); font-weight: 700; }
+      .bad { color: var(--warn); font-weight: 700; }
+      tr.problem { background: #fff1f2; }
+      .hint { margin-top: 8px; font-size: 12px; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Айракты — Аудит Яндекс</h1>
+      <div class="subtitle">Аудит отчетов Яндекс с 11.09.2025: проверка начислений, выплат и процента таксопарка.</div>
+
+      <h2>1) Ручной ввод строки отчета</h2>
+      <section class="card">
+        <div class="row">
+          <input id="date" type="date" />
+          <input id="month" type="month" />
+          <input id="driver" type="text" placeholder="Водитель" />
+          <input id="car" type="text" placeholder="Машина" />
+          <input id="coopType" type="text" placeholder="Тип сотрудничества" />
+        </div>
+        <div class="row">
+          <input id="orders" type="number" min="0" step="1" placeholder="Количество заказов" />
+          <input id="turnover" type="number" min="0" step="0.01" placeholder="Оборот Яндекс" />
+          <input id="accruedPark" type="number" min="0" step="0.01" placeholder="Начислено таксопарку" />
+          <input id="paidPark" type="number" min="0" step="0.01" placeholder="Выплата таксопарку" />
+          <input id="paidDriver" type="number" min="0" step="0.01" placeholder="Выплата водителю" />
+        </div>
+        <div class="row">
+          <input id="commissionYandex" type="number" min="0" step="0.01" placeholder="Комиссия Яндекс" />
+          <input id="withholdings" type="number" min="0" step="0.01" placeholder="Удержания" />
+          <input id="adjustments" type="number" min="0" step="0.01" placeholder="Корректировки" />
+          <input id="loan" type="number" min="0" step="0.01" placeholder="Займ" />
+          <input id="comment" type="text" placeholder="Комментарий" />
+        </div>
+        <div class="btn-row">
+          <button id="addBtn">Добавить строку</button>
+          <button id="csvBtn" class="btn-secondary">Экспорт CSV</button>
+          <button id="clearBtn" class="btn-danger">Очистить все данные</button>
+        </div>
+        <div class="hint">Процент таксопарка фиксирован: 2%.</div>
+      </section>
+
+      <h2>2) Фильтры</h2>
+      <section class="card">
+        <div class="row">
+          <input id="filterDateFrom" type="date" placeholder="Дата от" />
+          <input id="filterDateTo" type="date" placeholder="Дата до" />
+          <input id="filterMonth" type="month" />
+          <input id="filterDriver" type="text" placeholder="Водитель" />
+          <input id="filterCar" type="text" placeholder="Машина" />
+        </div>
+        <div class="row">
+          <input id="filterCoop" type="text" placeholder="Тип сотрудничества" />
+          <select id="filterStatus">
+            <option value="">Статус: все</option>
+            <option value="OK">OK</option>
+            <option value="Проверить">Проверить</option>
+          </select>
+        </div>
+      </section>
+
+      <h2>3) Итоги</h2>
+      <section class="grid" id="summary"></section>
+
+      <h2>4) Общий отчет</h2>
+      <div class="table-wrap"><table><thead><tr>
+        <th>Дата</th><th>Месяц</th><th>Водитель</th><th>Машина</th><th>Тип сотрудничества</th><th>Заказы</th><th>Оборот Яндекс</th><th>Начислено таксопарку</th><th>Выплата таксопарку</th><th>Выплата водителю</th><th>Комиссия Яндекс</th><th>Удержания</th><th>Корректировки</th><th>Займ</th><th>Ожидаемый доход 2%</th><th>Факт %</th><th>Разница</th><th>Чисто получено парком</th><th>Статус</th><th>Комментарий</th>
+      </tr></thead><tbody id="reportBody"></tbody></table></div>
+
+      <h2>5) Итоги по месяцам</h2>
+      <div class="table-wrap"><table><thead><tr><th>Месяц</th><th>Оборот</th><th>Начислено</th><th>Ожидаемо 2%</th><th>Разница</th></tr></thead><tbody id="monthBody"></tbody></table></div>
+
+      <h2>6) Итоги по водителям</h2>
+      <div class="table-wrap"><table><thead><tr><th>Водитель</th><th>Оборот</th><th>Начислено</th><th>Ожидаемо 2%</th><th>Разница</th></tr></thead><tbody id="driverBody"></tbody></table></div>
+
+      <h2>7) Итоги по машинам</h2>
+      <div class="table-wrap"><table><thead><tr><th>Машина</th><th>Оборот</th><th>Начислено</th><th>Ожидаемо 2%</th><th>Разница</th></tr></thead><tbody id="carBody"></tbody></table></div>
+
+      <h2>8) Проблемные строки (разница &lt; 0)</h2>
+      <div class="table-wrap"><table><thead><tr><th>Дата</th><th>Водитель</th><th>Машина</th><th>Оборот</th><th>Начислено</th><th>Ожидаемо</th><th>Разница</th><th>Комментарий</th></tr></thead><tbody id="problemBody"></tbody></table></div>
+    </div>
+
+    <script>
+      const LS_KEY = 'airakty_yandex_audit_v1';
+      const PARK_PERCENT = 2;
+      const $ = (id) => document.getElementById(id);
+      const money = (n) => `${Number(n || 0).toLocaleString('ru-RU', { maximumFractionDigits: 2 })} ₸`;
+      const percent = (n) => `${Number(n || 0).toFixed(2)}%`;
+
+      const state = {
+        rows: JSON.parse(localStorage.getItem(LS_KEY) || '[]')
+      };
+
+      function compute(row) {
+        const turnover = Number(row.turnover) || 0;
+        const accruedPark = Number(row.accruedPark) || 0;
+        const paidPark = Number(row.paidPark) || 0;
+        const withholdings = Number(row.withholdings) || 0;
+        const adjustments = Number(row.adjustments) || 0;
+        const loan = Number(row.loan) || 0;
+
+        const expectedIncome = turnover * PARK_PERCENT / 100;
+        const actualPercent = turnover > 0 ? (accruedPark / turnover) * 100 : 0;
+        const diff = accruedPark - expectedIncome;
+        const netPark = paidPark - withholdings - adjustments - loan;
+        const status = diff < 0 ? 'Проверить' : 'OK';
+        return { ...row, expectedIncome, actualPercent, diff, netPark, status };
+      }
+
+      function save() {
+        localStorage.setItem(LS_KEY, JSON.stringify(state.rows));
+      }
+
+      function getFilteredRows() {
+        const fDateFrom = $('filterDateFrom').value;
+        const fDateTo = $('filterDateTo').value;
+        const fMonth = $('filterMonth').value;
+        const fDriver = $('filterDriver').value.trim().toLowerCase();
+        const fCar = $('filterCar').value.trim().toLowerCase();
+        const fCoop = $('filterCoop').value.trim().toLowerCase();
+        const fStatus = $('filterStatus').value;
+
+        return state.rows.map(compute).filter((r) => {
+          if (fDateFrom && r.date < fDateFrom) return false;
+          if (fDateTo && r.date > fDateTo) return false;
+          if (fMonth && r.month !== fMonth) return false;
+          if (fDriver && !r.driver.toLowerCase().includes(fDriver)) return false;
+          if (fCar && !r.car.toLowerCase().includes(fCar)) return false;
+          if (fCoop && !r.coopType.toLowerCase().includes(fCoop)) return false;
+          if (fStatus && r.status !== fStatus) return false;
+          return true;
+        });
+      }
+
+      function aggregateBy(rows, key) {
+        const map = {};
+        for (const r of rows) {
+          const k = r[key] || '—';
+          if (!map[k]) map[k] = { turnover: 0, accruedPark: 0, expectedIncome: 0, diff: 0 };
+          map[k].turnover += Number(r.turnover) || 0;
+          map[k].accruedPark += Number(r.accruedPark) || 0;
+          map[k].expectedIncome += r.expectedIncome;
+          map[k].diff += r.diff;
+        }
+        return Object.entries(map).sort((a, b) => a[0].localeCompare(b[0], 'ru'));
+      }
+
+      function renderSummary(rows) {
+        const totals = rows.reduce((acc, r) => {
+          acc.turnover += Number(r.turnover) || 0;
+          acc.accruedPark += Number(r.accruedPark) || 0;
+          acc.paidPark += Number(r.paidPark) || 0;
+          acc.paidDriver += Number(r.paidDriver) || 0;
+          acc.commissionYandex += Number(r.commissionYandex) || 0;
+          acc.withholdings += Number(r.withholdings) || 0;
+          acc.adjustments += Number(r.adjustments) || 0;
+          acc.loan += Number(r.loan) || 0;
+          acc.expectedIncome += r.expectedIncome;
+          acc.diff += r.diff;
+          return acc;
+        }, { turnover: 0, accruedPark: 0, paidPark: 0, paidDriver: 0, commissionYandex: 0, withholdings: 0, adjustments: 0, loan: 0, expectedIncome: 0, diff: 0 });
+
+        const avgActualPercent = totals.turnover > 0 ? (totals.accruedPark / totals.turnover) * 100 : 0;
+        const lost = rows.reduce((s, r) => s + (r.diff < 0 ? Math.abs(r.diff) : 0), 0);
+
+        const items = [
+          ['Общий оборот Яндекс', money(totals.turnover)],
+          ['Всего начислено таксопарку', money(totals.accruedPark)],
+          ['Всего выплачено таксопарку', money(totals.paidPark)],
+          ['Всего выплачено водителям', money(totals.paidDriver)],
+          ['Всего комиссия Яндекс', money(totals.commissionYandex)],
+          ['Всего удержания', money(totals.withholdings)],
+          ['Всего корректировки', money(totals.adjustments)],
+          ['Всего займ', money(totals.loan)],
+          ['Ожидаемый доход таксопарка по 2%', money(totals.expectedIncome)],
+          ['Фактический средний процент', percent(avgActualPercent)],
+          ['Недополученная сумма', money(lost)]
+        ];
+
+        $('summary').innerHTML = items.map(([label, value]) => `<div class="card"><div class="label">${label}</div><div class="value">${value}</div></div>`).join('');
+      }
+
+      function renderTableRows(rows) {
+        $('reportBody').innerHTML = rows.map((r) => `
+          <tr class="${r.diff < 0 ? 'problem' : ''}">
+            <td>${r.date}</td><td>${r.month}</td><td>${r.driver}</td><td>${r.car}</td><td>${r.coopType}</td><td>${r.orders}</td>
+            <td>${money(r.turnover)}</td><td>${money(r.accruedPark)}</td><td>${money(r.paidPark)}</td><td>${money(r.paidDriver)}</td>
+            <td>${money(r.commissionYandex)}</td><td>${money(r.withholdings)}</td><td>${money(r.adjustments)}</td><td>${money(r.loan)}</td>
+            <td>${money(r.expectedIncome)}</td><td>${percent(r.actualPercent)}</td>
+            <td class="${r.diff < 0 ? 'bad' : 'ok'}">${money(r.diff)}</td><td>${money(r.netPark)}</td>
+            <td><span class="${r.status === 'OK' ? 'ok' : 'bad'}">${r.status}</span></td><td>${r.comment || ''}</td>
+          </tr>
+        `).join('');
+      }
+
+      function renderAggregateTable(rows, key, targetBodyId) {
+        const agg = aggregateBy(rows, key);
+        $(targetBodyId).innerHTML = agg.map(([name, v]) => `
+          <tr>
+            <td>${name}</td><td>${money(v.turnover)}</td><td>${money(v.accruedPark)}</td><td>${money(v.expectedIncome)}</td>
+            <td class="${v.diff < 0 ? 'bad' : 'ok'}">${money(v.diff)}</td>
+          </tr>
+        `).join('');
+      }
+
+      function renderProblems(rows) {
+        const problems = rows.filter((r) => r.diff < 0);
+        $('problemBody').innerHTML = problems.map((r) => `
+          <tr class="problem"><td>${r.date}</td><td>${r.driver}</td><td>${r.car}</td><td>${money(r.turnover)}</td><td>${money(r.accruedPark)}</td><td>${money(r.expectedIncome)}</td><td class="bad">${money(r.diff)}</td><td>${r.comment || ''}</td></tr>
+        `).join('');
+      }
+
+      function renderAll() {
+        const rows = getFilteredRows();
+        renderSummary(rows);
+        renderTableRows(rows);
+        renderAggregateTable(rows, 'month', 'monthBody');
+        renderAggregateTable(rows, 'driver', 'driverBody');
+        renderAggregateTable(rows, 'car', 'carBody');
+        renderProblems(rows);
+      }
+
+      function addRow() {
+        const row = {
+          date: $('date').value,
+          month: $('month').value,
+          driver: $('driver').value.trim(),
+          car: $('car').value.trim(),
+          coopType: $('coopType').value.trim(),
+          orders: Number($('orders').value) || 0,
+          turnover: Number($('turnover').value) || 0,
+          accruedPark: Number($('accruedPark').value) || 0,
+          paidPark: Number($('paidPark').value) || 0,
+          paidDriver: Number($('paidDriver').value) || 0,
+          commissionYandex: Number($('commissionYandex').value) || 0,
+          withholdings: Number($('withholdings').value) || 0,
+          adjustments: Number($('adjustments').value) || 0,
+          loan: Number($('loan').value) || 0,
+          comment: $('comment').value.trim()
+        };
+
+        if (!row.date || row.date < '2025-09-11' || !row.month || !row.driver || !row.car || row.turnover <= 0) {
+          alert('Заполните обязательные поля. Дата должна быть не раньше 11.09.2025, оборот > 0.');
+          return;
+        }
+
+        state.rows.push(row);
+        save();
+        renderAll();
+      }
+
+      function exportCsv() {
+        const headers = [
+          'дата','месяц','водитель','машина','тип сотрудничества','количество заказов','оборот яндекс','начислено таксопарку','выплата таксопарку','выплата водителю','комиссия яндекс','удержания','корректировки','займ','комментарий','ожидаемый доход 2%','фактический процент','разница','чисто получено парком','статус'
+        ];
+        const rows = state.rows.map(compute);
+        const lines = rows.map((r) => [
+          r.date, r.month, r.driver, r.car, r.coopType, r.orders, r.turnover, r.accruedPark, r.paidPark, r.paidDriver, r.commissionYandex, r.withholdings, r.adjustments, r.loan, r.comment || '', r.expectedIncome.toFixed(2), r.actualPercent.toFixed(4), r.diff.toFixed(2), r.netPark.toFixed(2), r.status
+        ].map((v) => `"${String(v).replaceAll('"', '""')}"`).join(','));
+        const csv = '\uFEFF' + [headers.join(','), ...lines].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'airakty_yandex_audit.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      $('addBtn').addEventListener('click', addRow);
+      $('csvBtn').addEventListener('click', exportCsv);
+      $('clearBtn').addEventListener('click', () => {
+        if (!confirm('Удалить все записи аудита?')) return;
+        state.rows = [];
+        save();
+        renderAll();
+      });
+
+      ['filterDateFrom','filterDateTo','filterMonth','filterDriver','filterCar','filterCoop','filterStatus'].forEach((id) => {
+        $(id).addEventListener('input', renderAll);
+        $(id).addEventListener('change', renderAll);
+      });
+
+      renderAll();
+    </script>
+  </body>
+</html>
