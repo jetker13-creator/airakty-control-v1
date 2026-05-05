@@ -5,232 +5,162 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Айракты Control v1</title>
     <style>
-      :root {
-        --bg: #f4f7fb;
-        --card: #ffffff;
-        --text: #1f2937;
-        --muted: #6b7280;
-        --ok: #0f766e;
-        --warn: #b91c1c;
-        --accent: #2563eb;
-        --border: #e5e7eb;
-      }
-
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-      }
-
-      .container {
-        max-width: 1100px;
-        margin: 32px auto;
-        padding: 0 16px;
-      }
-
-      h1 {
-        margin: 0 0 20px;
-        font-size: 28px;
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 12px;
-        margin-bottom: 16px;
-      }
-
-      .card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 14px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-      }
-
-      .label {
-        color: var(--muted);
-        font-size: 13px;
-        margin-bottom: 8px;
-      }
-
-      .value {
-        font-size: 24px;
-        font-weight: 700;
-      }
-
-      .positive { color: var(--ok); }
-      .negative { color: var(--warn); }
-
-      .warning {
-        margin: 14px 0 20px;
-        background: #fee2e2;
-        color: #7f1d1d;
-        border: 1px solid #fecaca;
-        border-radius: 10px;
-        padding: 12px;
-        font-weight: 700;
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
-      }
-
-      th, td {
-        text-align: left;
-        padding: 10px 12px;
-        border-bottom: 1px solid var(--border);
-        font-size: 14px;
-      }
-
-      th {
-        background: #f9fafb;
-        color: #374151;
-      }
-
-      tr:last-child td { border-bottom: none; }
-
-      .hint {
-        margin-top: 10px;
-        color: var(--muted);
-        font-size: 13px;
-      }
-
-      .controls {
-        margin: 0 0 16px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-
-      input[type='number'] {
-        width: 180px;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 8px 10px;
-        font-size: 14px;
-      }
-
-      button {
-        background: var(--accent);
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 8px 12px;
-        cursor: pointer;
-      }
+      :root { --bg:#f4f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280; --ok:#0f766e; --warn:#b91c1c; --accent:#2563eb; --border:#e5e7eb; }
+      * { box-sizing:border-box; }
+      body { margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); }
+      .container { max-width:1200px; margin:32px auto; padding:0 16px; }
+      h1,h2 { margin:0 0 14px; }
+      h2 { margin-top:24px; font-size:22px; }
+      .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-bottom:16px; }
+      .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; box-shadow:0 1px 3px rgba(0,0,0,.04); }
+      .label { color:var(--muted); font-size:13px; margin-bottom:8px; }
+      .value { font-size:24px; font-weight:700; }
+      .positive{color:var(--ok)} .negative{color:var(--warn)}
+      .warning { margin:14px 0 20px; background:#fee2e2; color:#7f1d1d; border:1px solid #fecaca; border-radius:10px; padding:12px; font-weight:700; }
+      table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+      th,td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); font-size:14px; }
+      th { background:#f9fafb; color:#374151; }
+      tr:last-child td { border-bottom:none; }
+      .hint { margin-top:10px; color:var(--muted); font-size:13px; }
+      .controls { margin:0 0 16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+      input, button { border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:14px; }
+      input[type='number'] { width:160px; }
+      button { background:var(--accent); border:none; color:#fff; cursor:pointer; }
+      .wide { width:100%; overflow:auto; }
+      .problem { background:#fff1f2; }
+      .ok-badge { color:var(--ok); font-weight:600; }
+      .bad-badge { color:var(--warn); font-weight:700; }
     </style>
   </head>
   <body>
     <div class="container">
       <h1>Айракты Control v1</h1>
-
       <div class="controls card">
         <label for="dailyIncome">Доход парка в день (₸):</label>
         <input id="dailyIncome" type="number" min="0" step="1000" value="75000" />
         <button id="recalcBtn">Пересчитать</button>
       </div>
+      <section class="grid">
+        <div class="card"><div class="label">Общий доход (в месяц)</div><div id="totalIncome" class="value">—</div></div>
+        <div class="card"><div class="label">Общий расход (в месяц)</div><div id="totalExpense" class="value">—</div></div>
+        <div class="card"><div class="label">Остаток (в месяц)</div><div id="balance" class="value">—</div></div>
+      </section>
+      <div id="stopWarning" class="warning" style="display:none;">STOP: доход ниже 75 000 ₸ три дня подряд.</div>
+      <div class="wide"><table><thead><tr><th>Машина</th><th>Статус</th><th>Аренда/день</th><th>Режим</th><th>Доход/день</th></tr></thead><tbody id="carsTableBody"></tbody></table></div>
+      <div class="hint">Фиксированные расходы: кредиты 3 800 000 ₸/мес, провайдер 300 000 ₸/мес, бәйге/призы 500 000 ₸/мес, займ 13 616 ₸/день.</div>
+
+      <h2>Проверка процента Яндекс</h2>
+      <div class="card controls">
+        <input id="yDate" type="date" />
+        <input id="yDriver" type="text" placeholder="Водитель" />
+        <input id="yCar" type="text" placeholder="Машина" />
+        <input id="yTurnover" type="number" min="0" step="100" placeholder="Оборот Яндекс" />
+        <input id="yActual" type="number" min="0" step="100" placeholder="Фактически начислено" />
+        <input id="yPercent" type="number" min="0" step="0.1" value="2" placeholder="% парка" />
+        <button id="addYRowBtn">Добавить</button>
+      </div>
 
       <section class="grid">
-        <div class="card">
-          <div class="label">Общий доход (в месяц)</div>
-          <div id="totalIncome" class="value">—</div>
-        </div>
-        <div class="card">
-          <div class="label">Общий расход (в месяц)</div>
-          <div id="totalExpense" class="value">—</div>
-        </div>
-        <div class="card">
-          <div class="label">Остаток (в месяц)</div>
-          <div id="balance" class="value">—</div>
-        </div>
+        <div class="card"><div class="label">Общий оборот Яндекс</div><div id="sumTurnover" class="value">—</div></div>
+        <div class="card"><div class="label">Общий доход парка</div><div id="sumActual" class="value">—</div></div>
+        <div class="card"><div class="label">Средний фактический процент</div><div id="avgPercent" class="value">—</div></div>
+        <div class="card"><div class="label">Общая недополученная сумма</div><div id="lostTotal" class="value">—</div></div>
       </section>
 
-      <div id="stopWarning" class="warning" style="display: none;">STOP: доход ниже 75 000 ₸ три дня подряд.</div>
+      <section class="grid">
+        <div class="card"><div class="label">Топ машин с отклонением</div><div id="topCars">—</div></div>
+        <div class="card"><div class="label">Топ водителей с отклонением</div><div id="topDrivers">—</div></div>
+      </section>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Машина</th>
-            <th>Статус</th>
-            <th>Аренда/день</th>
-            <th>Режим</th>
-            <th>Доход/день</th>
-          </tr>
-        </thead>
-        <tbody id="carsTableBody"></tbody>
-      </table>
-
-      <div class="hint">Фиксированные расходы: кредиты 3 800 000 ₸/мес, провайдер 300 000 ₸/мес, бәйге/призы 500 000 ₸/мес, займ 13 616 ₸/день.</div>
+      <div class="wide">
+        <table>
+          <thead>
+            <tr><th>Дата</th><th>Водитель</th><th>Машина</th><th>Оборот Яндекс</th><th>Фактически начислено парку</th><th>Ожидаемый % парка</th><th>Ожидаемая сумма</th><th>Разница</th><th>Статус</th></tr>
+          </thead>
+          <tbody id="yandexTableBody"></tbody>
+        </table>
+      </div>
     </div>
 
     <script>
-      const DAYS_IN_MONTH = 30;
-      const TARGET_DAILY_INCOME = 75000;
+      const DAYS_IN_MONTH = 30, TARGET_DAILY_INCOME = 75000, YANDEX_KEY = 'airakty_yandex_checks_v1';
+      const fleet = [...Array.from({ length:12 }, (_,i)=>({ name:`Машина ${i+1}`, status:'Работает', rent:12000, mode:'6/1' })), { name:'Машина 13', status:'Работает', rent:15000, mode:'6/1' }, { name:'Машина 14', status:'Не работает', rent:0, mode:'—' }];
+      const monthlyCredits=3800000, providerMonthly=300000, prizesMonthly=500000, dailyLoan=13616;
+      const money=n=>`${Math.round(n).toLocaleString('ru-RU')} ₸`;
+      const pct=n=>`${n.toFixed(2)}%`;
+      const yandexData = JSON.parse(localStorage.getItem(YANDEX_KEY) || '[]');
 
-      const fleet = [
-        ...Array.from({ length: 12 }, (_, i) => ({ name: `Машина ${i + 1}`, status: 'Работает', rent: 12000, mode: '6/1' })),
-        { name: 'Машина 13', status: 'Работает', rent: 15000, mode: '6/1' },
-        { name: 'Машина 14', status: 'Не работает', rent: 0, mode: '—' }
-      ];
-
-      const monthlyCredits = 3800000;
-      const providerMonthly = 300000;
-      const prizesMonthly = 500000;
-      const dailyLoan = 13616;
-
-      const money = n => `${Math.round(n).toLocaleString('ru-RU')} ₸`;
-
-      function renderTable() {
-        const tbody = document.getElementById('carsTableBody');
-        tbody.innerHTML = fleet
-          .map(car => `
-            <tr>
-              <td>${car.name}</td>
-              <td>${car.status}</td>
-              <td>${money(car.rent)}</td>
-              <td>${car.mode}</td>
-              <td>${money(car.rent)}</td>
-            </tr>
-          `)
-          .join('');
+      function renderFleet(){
+        carsTableBody.innerHTML = fleet.map(car=>`<tr><td>${car.name}</td><td>${car.status}</td><td>${money(car.rent)}</td><td>${car.mode}</td><td>${money(car.rent)}</td></tr>`).join('');
       }
 
-      function render() {
-        const dailyIncome = Number(document.getElementById('dailyIncome').value) || 0;
-
-        const totalIncome = dailyIncome * DAYS_IN_MONTH;
-        const totalExpense =
-          monthlyCredits +
-          providerMonthly +
-          prizesMonthly +
-          dailyLoan * DAYS_IN_MONTH;
-
-        const balance = totalIncome - totalExpense;
-
-        document.getElementById('totalIncome').textContent = money(totalIncome);
-        document.getElementById('totalExpense').textContent = money(totalExpense);
-
-        const balanceEl = document.getElementById('balance');
-        balanceEl.textContent = money(balance);
-        balanceEl.classList.remove('positive', 'negative');
-        balanceEl.classList.add(balance >= 0 ? 'positive' : 'negative');
-
-        const stopWarning = document.getElementById('stopWarning');
-        stopWarning.style.display = dailyIncome < TARGET_DAILY_INCOME ? 'block' : 'none';
+      function renderFinance(){
+        const dailyIncome = Number(dailyIncomeEl.value)||0;
+        const totalIncome=dailyIncome*DAYS_IN_MONTH;
+        const totalExpense=monthlyCredits+providerMonthly+prizesMonthly+dailyLoan*DAYS_IN_MONTH;
+        const balance=totalIncome-totalExpense;
+        totalIncomeEl.textContent=money(totalIncome); totalExpenseEl.textContent=money(totalExpense); balanceEl.textContent=money(balance);
+        balanceEl.classList.toggle('positive', balance>=0); balanceEl.classList.toggle('negative', balance<0);
+        stopWarning.style.display = dailyIncome < TARGET_DAILY_INCOME ? 'block':'none';
       }
 
-      document.getElementById('recalcBtn').addEventListener('click', render);
-      renderTable();
-      render();
+      function saveYandex(){ localStorage.setItem(YANDEX_KEY, JSON.stringify(yandexData)); }
+
+      function aggregateTop(rows, key){
+        const m = {};
+        rows.forEach(r=>{ if (r.diff < 0) m[r[key]] = (m[r[key]] || 0) + Math.abs(r.diff); });
+        return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,3);
+      }
+
+      function renderYandex(){
+        const rows = yandexData.map(r=>{
+          const expected = r.turnover * r.parkPercent / 100;
+          const actualPercent = r.turnover ? (r.actual / r.turnover) * 100 : 0;
+          const diff = r.actual - expected;
+          return { ...r, expected, actualPercent, diff, status: diff < 0 ? 'Проверить':'OK' };
+        });
+        yandexTableBody.innerHTML = rows.map(r=>`<tr class="${r.diff<0?'problem':''}"><td>${r.date}</td><td>${r.driver}</td><td>${r.car}</td><td>${money(r.turnover)}</td><td>${money(r.actual)}</td><td>${pct(r.parkPercent)}</td><td>${money(r.expected)}</td><td class="${r.diff<0?'negative':'positive'}">${money(r.diff)}</td><td><span class="${r.diff<0?'bad-badge':'ok-badge'}">${r.status}</span></td></tr>`).join('');
+
+        const totalTurnover = rows.reduce((s,r)=>s+r.turnover,0);
+        const totalActual = rows.reduce((s,r)=>s+r.actual,0);
+        const weightedActualPercent = totalTurnover ? (totalActual/totalTurnover)*100 : 0;
+        const lost = rows.reduce((s,r)=>s + (r.diff<0?Math.abs(r.diff):0), 0);
+        sumTurnover.textContent = money(totalTurnover); sumActual.textContent = money(totalActual); avgPercent.textContent = pct(weightedActualPercent); lostTotal.textContent = money(lost);
+
+        const topCarsData = aggregateTop(rows, 'car');
+        const topDriversData = aggregateTop(rows, 'driver');
+        topCars.innerHTML = topCarsData.length ? topCarsData.map(([name,val])=>`<div>${name}: ${money(val)}</div>`).join('') : 'Нет отклонений';
+        topDrivers.innerHTML = topDriversData.length ? topDriversData.map(([name,val])=>`<div>${name}: ${money(val)}</div>`).join('') : 'Нет отклонений';
+      }
+
+      const dailyIncomeEl = document.getElementById('dailyIncome');
+      const totalIncomeEl = document.getElementById('totalIncome');
+      const totalExpenseEl = document.getElementById('totalExpense');
+      const balanceEl = document.getElementById('balance');
+      const stopWarning = document.getElementById('stopWarning');
+      const carsTableBody = document.getElementById('carsTableBody');
+      const yandexTableBody = document.getElementById('yandexTableBody');
+      const sumTurnover = document.getElementById('sumTurnover');
+      const sumActual = document.getElementById('sumActual');
+      const avgPercent = document.getElementById('avgPercent');
+      const lostTotal = document.getElementById('lostTotal');
+      const topCars = document.getElementById('topCars');
+      const topDrivers = document.getElementById('topDrivers');
+
+      document.getElementById('recalcBtn').addEventListener('click', renderFinance);
+      document.getElementById('addYRowBtn').addEventListener('click', ()=>{
+        const date = document.getElementById('yDate').value || new Date().toISOString().slice(0,10);
+        const driver = document.getElementById('yDriver').value.trim();
+        const car = document.getElementById('yCar').value.trim();
+        const turnover = Number(document.getElementById('yTurnover').value)||0;
+        const actual = Number(document.getElementById('yActual').value)||0;
+        const parkPercent = Number(document.getElementById('yPercent').value)||2;
+        if (!driver || !car || turnover <= 0) return;
+        yandexData.push({ date, driver, car, turnover, actual, parkPercent });
+        saveYandex(); renderYandex();
+      });
+
+      renderFleet(); renderFinance(); renderYandex();
     </script>
   </body>
 </html>
