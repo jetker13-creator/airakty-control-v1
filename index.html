@@ -11,9 +11,13 @@
         --text: #0f172a;
         --muted: #64748b;
         --accent: #2563eb;
+        --accent-dark: #1d4ed8;
+        --danger: #dc2626;
+        --danger-dark: #b91c1c;
         --ok: #0f766e;
         --warn: #b91c1c;
         --line: #e2e8f0;
+        --soft: #f8fafc;
       }
       * { box-sizing: border-box; }
       body {
@@ -23,13 +27,14 @@
         background: var(--bg);
       }
       .wrap {
-        max-width: 1200px;
+        max-width: 1280px;
         margin: 28px auto;
-        padding: 0 16px;
+        padding: 0 16px 32px;
       }
       h1, h2 { margin: 0 0 14px; }
       h1 { font-size: 30px; }
-      .sub { color: var(--muted); margin-bottom: 18px; }
+      h2 { font-size: 22px; margin-top: 24px; }
+      .sub { color: var(--muted); margin-bottom: 18px; line-height: 1.45; }
       .card {
         background: var(--surface);
         border: 1px solid var(--line);
@@ -38,23 +43,51 @@
       }
       .controls {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
         gap: 10px;
+        align-items: stretch;
         margin-bottom: 16px;
       }
-      input, button {
+      .button, button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         width: 100%;
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 10px;
-        font-size: 14px;
-      }
-      button {
-        background: var(--accent);
-        color: #fff;
         border: none;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #fff;
+        background: var(--accent);
         cursor: pointer;
+        text-decoration: none;
+        transition: background .15s ease, transform .15s ease;
       }
+      .button:hover, button:hover { background: var(--accent-dark); }
+      .button:active, button:active { transform: translateY(1px); }
+      button.secondary { background: #475569; }
+      button.secondary:hover { background: #334155; }
+      button.danger { background: var(--danger); }
+      button.danger:hover { background: var(--danger-dark); }
+      input[type="file"] { display: none; }
+      .hint {
+        grid-column: 1 / -1;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      .notice {
+        display: none;
+        margin: 0 0 16px;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      .notice.show { display: block; }
+      .notice.ok { color: #065f46; background: #ecfdf5; border: 1px solid #a7f3d0; }
+      .notice.bad { color: #991b1b; background: #fef2f2; border: 1px solid #fecaca; }
       .stats {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -62,7 +95,23 @@
         margin-bottom: 16px;
       }
       .label { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
-      .value { font-size: 24px; font-weight: 700; }
+      .value { font-size: 24px; font-weight: 800; }
+      .positive { color: var(--ok); }
+      .negative { color: var(--warn); }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 13px;
+        margin: -4px 0 16px;
+      }
+      .pill {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 6px 10px;
+      }
       table {
         width: 100%;
         border-collapse: collapse;
@@ -76,107 +125,559 @@
         border-bottom: 1px solid var(--line);
         text-align: left;
         font-size: 14px;
+        vertical-align: top;
       }
-      th { background: #f8fafc; }
+      th { background: var(--soft); font-weight: 700; white-space: nowrap; }
       tr:last-child td { border-bottom: none; }
-      .problem { background: #fff1f2; }
-      .ok { color: var(--ok); font-weight: 600; }
-      .bad { color: var(--warn); font-weight: 700; }
-      .scroll { overflow-x: auto; }
+      td.num, th.num { text-align: right; white-space: nowrap; }
+      .scroll { overflow-x: auto; margin-bottom: 18px; }
+      .empty {
+        color: var(--muted);
+        text-align: center;
+        padding: 22px !important;
+      }
+      .small { color: var(--muted); font-size: 12px; }
     </style>
   </head>
   <body>
     <main class="wrap">
       <h1>Айракты — Аудит Яндекс</h1>
-      <div class="sub">Чистая single-file страница для сверки процента парка по выплатам Яндекс.</div>
+      <div class="sub">Загрузка отчета Яндекс из CSV или Excel .xlsx, расчет итогов, группировка по водителям и категориям. Все данные хранятся только в localStorage браузера.</div>
 
       <section class="card controls">
-        <input id="aDate" type="date" />
-        <input id="aDriver" type="text" placeholder="Водитель" />
-        <input id="aCar" type="text" placeholder="Машина" />
-        <input id="aTurnover" type="number" min="0" step="100" placeholder="Оборот" />
-        <input id="aActual" type="number" min="0" step="100" placeholder="Начислено парку" />
-        <input id="aPercent" type="number" min="0" step="0.1" value="2" placeholder="% парка" />
-        <button id="addBtn">Добавить запись</button>
+        <label class="button" for="reportFile">Загрузить отчет Яндекс</label>
+        <input id="reportFile" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+        <button id="exportBtn" class="secondary" type="button">Экспорт итогов CSV</button>
+        <button id="clearBtn" class="danger" type="button">Очистить данные</button>
+        <div class="hint">Нужные колонки: Дата, Событие, Категория, Комментарий, Сумма, Исполнитель, Инициатор. Excel читается прямо в браузере без сервера.</div>
       </section>
+
+      <div id="notice" class="notice"></div>
+      <div id="meta" class="meta"></div>
 
       <section class="stats">
-        <div class="card"><div class="label">Общий оборот</div><div id="sTurn" class="value">—</div></div>
-        <div class="card"><div class="label">Фактически начислено</div><div id="sActual" class="value">—</div></div>
-        <div class="card"><div class="label">Средний факт. %</div><div id="sAvg" class="value">—</div></div>
-        <div class="card"><div class="label">Недополучено</div><div id="sLost" class="value">—</div></div>
+        <div class="card"><div class="label">Оборот</div><div id="sTurnover" class="value">—</div></div>
+        <div class="card"><div class="label">Комиссия парка</div><div id="sParkCommission" class="value">—</div></div>
+        <div class="card"><div class="label">Комиссия Яндекс</div><div id="sYandexCommission" class="value">—</div></div>
+        <div class="card"><div class="label">НДС</div><div id="sVat" class="value">—</div></div>
+        <div class="card"><div class="label">Удержания</div><div id="sWithholdings" class="value">—</div></div>
+        <div class="card"><div class="label">Займ</div><div id="sLoans" class="value">—</div></div>
+        <div class="card"><div class="label">Корректировки</div><div id="sCorrections" class="value">—</div></div>
+        <div class="card"><div class="label">Фактический процент парка</div><div id="sActualPercent" class="value">—</div></div>
       </section>
 
-      <h2>Детализация</h2>
+      <h2>Группировка по водителям</h2>
       <div class="scroll">
         <table>
           <thead>
             <tr>
-              <th>Дата</th><th>Водитель</th><th>Машина</th><th>Оборот</th><th>Начислено</th><th>% парка</th><th>Ожидаемо</th><th>Разница</th><th>Статус</th>
+              <th>Исполнитель / Инициатор</th>
+              <th class="num">Оборот</th>
+              <th class="num">Комиссия парка</th>
+              <th class="num">Комиссия Яндекс</th>
+              <th class="num">НДС</th>
+              <th class="num">Удержания</th>
+              <th class="num">Займ</th>
+              <th class="num">Корректировки</th>
+              <th class="num">Факт. %</th>
             </tr>
           </thead>
-          <tbody id="tbody"></tbody>
+          <tbody id="driversBody"></tbody>
+        </table>
+      </div>
+
+      <h2>Группировка по категориям</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Категория</th>
+              <th class="num">Количество</th>
+              <th class="num">Сумма</th>
+            </tr>
+          </thead>
+          <tbody id="categoriesBody"></tbody>
+        </table>
+      </div>
+
+      <h2>Загруженные операции</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Дата</th><th>Событие</th><th>Категория</th><th>Комментарий</th><th class="num">Сумма</th><th>Исполнитель</th><th>Инициатор</th>
+            </tr>
+          </thead>
+          <tbody id="rowsBody"></tbody>
         </table>
       </div>
     </main>
 
     <script>
-      const STORE_KEY = 'airakty_audit_yandex_v1';
-      const rows = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+      const STORE_KEY = 'airakty_audit_yandex_report_v2';
+      const REQUIRED_COLUMNS = ['Дата', 'Событие', 'Категория', 'Комментарий', 'Сумма', 'Исполнитель', 'Инициатор'];
+      const TURNOVER_CATEGORIES = ['Оплата картой', 'Компенсация оплаты поездки'];
+      const state = loadState();
 
-      const money = n => `${Math.round(n).toLocaleString('ru-RU')} ₸`;
-      const pct = n => `${n.toFixed(2)}%`;
       const $ = id => document.getElementById(id);
+      const money = n => `${Math.round(Number(n) || 0).toLocaleString('ru-RU')} ₸`;
+      const pct = n => Number.isFinite(n) ? `${n.toFixed(2).replace('.', ',')}%` : '—';
+      const normalize = value => String(value ?? '').trim();
+      const normalizeKey = value => normalize(value).toLocaleLowerCase('ru-RU').replaceAll('ё', 'е');
+      const escapeHtml = value => normalize(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
 
-      function save() {
-        localStorage.setItem(STORE_KEY, JSON.stringify(rows));
+      function loadState() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+          return {
+            rows: Array.isArray(saved.rows) ? saved.rows : [],
+            fileName: saved.fileName || '',
+            loadedAt: saved.loadedAt || ''
+          };
+        } catch {
+          return { rows: [], fileName: '', loadedAt: '' };
+        }
+      }
+
+      function saveState() {
+        localStorage.setItem(STORE_KEY, JSON.stringify(state));
+      }
+
+      function parseAmount(value) {
+        if (typeof value === 'number') return value;
+        let text = normalize(value)
+          .replace(/\s/g, '')
+          .replace(/₸|KZT|тенге/gi, '')
+          .replace(/[()]/g, match => match === '(' ? '-' : '');
+
+        if (!text) return 0;
+
+        const hasComma = text.includes(',');
+        const hasDot = text.includes('.');
+        if (hasComma && hasDot) {
+          text = text.lastIndexOf(',') > text.lastIndexOf('.')
+            ? text.replaceAll('.', '').replace(',', '.')
+            : text.replaceAll(',', '');
+        } else if (hasComma) {
+          text = text.replace(',', '.');
+        }
+
+        const parsed = Number(text.replace(/[^0-9.-]/g, ''));
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
+
+      function detectCsvDelimiter(text) {
+        const firstLine = text.split(/\r?\n/).find(line => line.trim()) || '';
+        const candidates = [';', '\t', ','];
+        return candidates
+          .map(delimiter => ({ delimiter, count: firstLine.split(delimiter).length - 1 }))
+          .sort((a, b) => b.count - a.count)[0].delimiter;
+      }
+
+      function parseCsv(text) {
+        const delimiter = detectCsvDelimiter(text);
+        const rows = [];
+        let row = [];
+        let cell = '';
+        let quote = false;
+
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i];
+          const next = text[i + 1];
+
+          if (char === '"') {
+            if (quote && next === '"') {
+              cell += '"';
+              i++;
+            } else {
+              quote = !quote;
+            }
+          } else if (char === delimiter && !quote) {
+            row.push(cell);
+            cell = '';
+          } else if ((char === '\n' || char === '\r') && !quote) {
+            if (char === '\r' && next === '\n') i++;
+            row.push(cell);
+            if (row.some(value => normalize(value) !== '')) rows.push(row);
+            row = [];
+            cell = '';
+          } else {
+            cell += char;
+          }
+        }
+
+        row.push(cell);
+        if (row.some(value => normalize(value) !== '')) rows.push(row);
+        return rows;
+      }
+
+      function rowsToObjects(matrix) {
+        const headerIndex = matrix.findIndex(row => REQUIRED_COLUMNS.every(column =>
+          row.some(cell => normalizeKey(cell) === normalizeKey(column))
+        ));
+
+        if (headerIndex === -1) {
+          throw new Error(`Не найдена строка заголовков. Проверьте колонки: ${REQUIRED_COLUMNS.join(', ')}.`);
+        }
+
+        const header = matrix[headerIndex].map(normalizeKey);
+        const indexes = Object.fromEntries(REQUIRED_COLUMNS.map(column => [
+          column,
+          header.indexOf(normalizeKey(column))
+        ]));
+
+        return matrix.slice(headerIndex + 1)
+          .filter(row => row.some(cell => normalize(cell) !== ''))
+          .map(row => ({
+            date: normalize(row[indexes['Дата']]),
+            event: normalize(row[indexes['Событие']]),
+            category: normalize(row[indexes['Категория']]),
+            comment: normalize(row[indexes['Комментарий']]),
+            amount: parseAmount(row[indexes['Сумма']]),
+            executor: normalize(row[indexes['Исполнитель']]),
+            initiator: normalize(row[indexes['Инициатор']])
+          }));
+      }
+
+      function getAttr(node, name) {
+        return [...node.attributes].find(attr => attr.localName === name || attr.name === name)?.value || '';
+      }
+
+      function findNodes(doc, localName) {
+        return [...doc.getElementsByTagName('*')].filter(node => node.localName === localName);
+      }
+
+      function parseXml(text) {
+        const doc = new DOMParser().parseFromString(text, 'application/xml');
+        const error = doc.getElementsByTagName('parsererror')[0];
+        if (error) throw new Error('Не удалось прочитать XML внутри Excel-файла.');
+        return doc;
+      }
+
+      function excelDate(serial) {
+        const value = Number(serial);
+        if (!Number.isFinite(value) || value <= 0) return serial;
+        const date = new Date(Date.UTC(1899, 11, 30) + value * 86400000);
+        return date.toISOString().slice(0, 10);
+      }
+
+      function parseZipEntries(buffer) {
+        const view = new DataView(buffer);
+        const bytes = new Uint8Array(buffer);
+        let eocd = -1;
+
+        for (let i = bytes.length - 22; i >= 0 && i > bytes.length - 66000; i--) {
+          if (view.getUint32(i, true) === 0x06054b50) {
+            eocd = i;
+            break;
+          }
+        }
+
+        if (eocd === -1) throw new Error('Excel-файл поврежден: не найден каталог ZIP.');
+
+        const entryCount = view.getUint16(eocd + 10, true);
+        const centralOffset = view.getUint32(eocd + 16, true);
+        const decoder = new TextDecoder('utf-8');
+        const entries = new Map();
+        let offset = centralOffset;
+
+        for (let i = 0; i < entryCount; i++) {
+          if (view.getUint32(offset, true) !== 0x02014b50) break;
+
+          const method = view.getUint16(offset + 10, true);
+          const compressedSize = view.getUint32(offset + 20, true);
+          const fileNameLength = view.getUint16(offset + 28, true);
+          const extraLength = view.getUint16(offset + 30, true);
+          const commentLength = view.getUint16(offset + 32, true);
+          const localOffset = view.getUint32(offset + 42, true);
+          const name = decoder.decode(bytes.slice(offset + 46, offset + 46 + fileNameLength));
+
+          const localNameLength = view.getUint16(localOffset + 26, true);
+          const localExtraLength = view.getUint16(localOffset + 28, true);
+          const dataStart = localOffset + 30 + localNameLength + localExtraLength;
+          entries.set(name, {
+            method,
+            data: buffer.slice(dataStart, dataStart + compressedSize)
+          });
+
+          offset += 46 + fileNameLength + extraLength + commentLength;
+        }
+
+        return entries;
+      }
+
+      async function unzipText(entries, name) {
+        const entry = entries.get(name);
+        if (!entry) throw new Error(`В Excel-файле не найден ${name}.`);
+
+        if (entry.method === 0) return new TextDecoder('utf-8').decode(entry.data);
+        if (entry.method !== 8) throw new Error('Excel-файл использует неподдерживаемое ZIP-сжатие.');
+        if (!('DecompressionStream' in window)) {
+          throw new Error('Этот браузер не поддерживает распаковку .xlsx. Обновите браузер или загрузите CSV.');
+        }
+
+        const stream = new Blob([entry.data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+        return await new Response(stream).text();
+      }
+
+      async function readXlsxMatrix(buffer) {
+        const entries = parseZipEntries(buffer);
+        const workbook = parseXml(await unzipText(entries, 'xl/workbook.xml'));
+        const rels = parseXml(await unzipText(entries, 'xl/_rels/workbook.xml.rels'));
+        const firstSheet = findNodes(workbook, 'sheet')[0];
+        if (!firstSheet) throw new Error('В Excel-файле не найден лист с данными.');
+
+        const relationId = getAttr(firstSheet, 'id');
+        const relation = findNodes(rels, 'Relationship').find(node => getAttr(node, 'Id') === relationId);
+        const target = relation ? getAttr(relation, 'Target').replace(/^\//, '') : 'worksheets/sheet1.xml';
+        const sheetPath = target.startsWith('xl/') ? target : `xl/${target}`;
+        const sharedStrings = entries.has('xl/sharedStrings.xml')
+          ? findNodes(parseXml(await unzipText(entries, 'xl/sharedStrings.xml')), 'si').map(si =>
+              findNodes(si, 't').map(node => node.textContent || '').join('')
+            )
+          : [];
+        const sheet = parseXml(await unzipText(entries, sheetPath));
+        const matrix = [];
+
+        findNodes(sheet, 'row').forEach(row => {
+          const rowIndex = Number(getAttr(row, 'r')) || matrix.length + 1;
+          const values = matrix[rowIndex - 1] || [];
+
+          findNodes(row, 'c').forEach(cell => {
+            const ref = getAttr(cell, 'r');
+            const colLetters = (ref.match(/[A-Z]+/i) || [''])[0].toUpperCase();
+            const colIndex = [...colLetters].reduce((sum, letter) => sum * 26 + letter.charCodeAt(0) - 64, 0) - 1;
+            const type = getAttr(cell, 't');
+            const valueNode = findNodes(cell, 'v')[0];
+            const inlineNode = findNodes(cell, 'is')[0];
+            let value = valueNode ? valueNode.textContent || '' : '';
+
+            if (type === 's') value = sharedStrings[Number(value)] || '';
+            if (type === 'inlineStr' && inlineNode) value = findNodes(inlineNode, 't').map(node => node.textContent || '').join('');
+            values[colIndex >= 0 ? colIndex : values.length] = value;
+          });
+
+          matrix[rowIndex - 1] = values;
+        });
+
+        const compact = matrix.filter(Boolean).map(row => row.map(value => value ?? ''));
+        const headerIndex = compact.findIndex(row => REQUIRED_COLUMNS.every(column =>
+          row.some(cell => normalizeKey(cell) === normalizeKey(column))
+        ));
+        const dateIndex = headerIndex === -1 ? -1 : compact[headerIndex].map(normalizeKey).indexOf(normalizeKey('Дата'));
+        if (dateIndex !== -1) {
+          compact.slice(headerIndex + 1).forEach(row => {
+            row[dateIndex] = excelDate(row[dateIndex]);
+          });
+        }
+        return compact;
+      }
+
+      async function readReportFile(file) {
+        const extension = file.name.split('.').pop().toLowerCase();
+
+        if (extension === 'csv') {
+          const text = await file.text();
+          return rowsToObjects(parseCsv(text.replace(/^\uFEFF/, '')));
+        }
+
+        if (extension === 'xlsx') {
+          const buffer = await file.arrayBuffer();
+          return rowsToObjects(await readXlsxMatrix(buffer));
+        }
+
+        throw new Error('Поддерживаются только файлы CSV и Excel .xlsx.');
+      }
+
+      function addMetrics(target, row) {
+        const category = normalizeKey(row.category);
+        const amount = Number(row.amount) || 0;
+
+        if (TURNOVER_CATEGORIES.map(normalizeKey).includes(category)) target.turnover += amount;
+        if (category === normalizeKey('Комиссия партнёра за заказ')) target.parkCommission += amount;
+        if (category === normalizeKey('Комиссия сервиса за заказ')) target.yandexCommission += amount;
+        if (category === normalizeKey('Комиссия сервиса, НДС')) target.vat += amount;
+        if (category === normalizeKey('Удержание в счет уплаты соц. платежей')) target.withholdings += amount;
+        if (category.includes('займ') || category.includes('экспресс деньги')) target.loans += amount;
+        if (category.includes('корректировка')) target.corrections += amount;
+      }
+
+      function emptyMetrics() {
+        return { turnover: 0, parkCommission: 0, yandexCommission: 0, vat: 0, withholdings: 0, loans: 0, corrections: 0 };
+      }
+
+      function calculate() {
+        const totals = emptyMetrics();
+        const drivers = new Map();
+        const categories = new Map();
+
+        state.rows.forEach(row => {
+          addMetrics(totals, row);
+
+          const driverName = row.executor || row.initiator || 'Без водителя';
+          if (!drivers.has(driverName)) drivers.set(driverName, emptyMetrics());
+          addMetrics(drivers.get(driverName), row);
+
+          const categoryName = row.category || 'Без категории';
+          const category = categories.get(categoryName) || { count: 0, amount: 0 };
+          category.count += 1;
+          category.amount += Number(row.amount) || 0;
+          categories.set(categoryName, category);
+        });
+
+        return { totals, drivers, categories };
+      }
+
+      function signedClass(value) {
+        return value < 0 ? 'negative' : value > 0 ? 'positive' : '';
+      }
+
+      function renderMetric(id, value, formatter = money) {
+        const el = $(id);
+        el.textContent = formatter(value);
+        el.className = `value ${signedClass(value)}`;
       }
 
       function render() {
-        const modeled = rows.map(r => {
-          const expected = r.turnover * r.parkPercent / 100;
-          const diff = r.actual - expected;
-          return { ...r, expected, diff, status: diff < 0 ? 'Проверить' : 'OK' };
-        });
+        const { totals, drivers, categories } = calculate();
+        const actualPercent = totals.turnover ? (totals.parkCommission / totals.turnover) * 100 : NaN;
 
-        $('tbody').innerHTML = modeled.map(r => `
-          <tr class="${r.diff < 0 ? 'problem' : ''}">
-            <td>${r.date}</td>
-            <td>${r.driver}</td>
-            <td>${r.car}</td>
-            <td>${money(r.turnover)}</td>
-            <td>${money(r.actual)}</td>
-            <td>${pct(r.parkPercent)}</td>
-            <td>${money(r.expected)}</td>
-            <td class="${r.diff < 0 ? 'bad' : 'ok'}">${money(r.diff)}</td>
-            <td class="${r.diff < 0 ? 'bad' : 'ok'}">${r.status}</td>
+        renderMetric('sTurnover', totals.turnover);
+        renderMetric('sParkCommission', totals.parkCommission);
+        renderMetric('sYandexCommission', totals.yandexCommission);
+        renderMetric('sVat', totals.vat);
+        renderMetric('sWithholdings', totals.withholdings);
+        renderMetric('sLoans', totals.loans);
+        renderMetric('sCorrections', totals.corrections);
+        renderMetric('sActualPercent', actualPercent, pct);
+
+        $('meta').innerHTML = state.rows.length ? `
+          <span class="pill">Файл: ${escapeHtml(state.fileName)}</span>
+          <span class="pill">Операций: ${state.rows.length.toLocaleString('ru-RU')}</span>
+          <span class="pill">Загружено: ${escapeHtml(state.loadedAt)}</span>
+        ` : '<span class="pill">Данные еще не загружены</span>';
+
+        $('driversBody').innerHTML = drivers.size ? [...drivers.entries()]
+          .sort((a, b) => Math.abs(b[1].turnover) - Math.abs(a[1].turnover))
+          .map(([name, item]) => `
+            <tr>
+              <td>${escapeHtml(name)}</td>
+              <td class="num">${money(item.turnover)}</td>
+              <td class="num ${signedClass(item.parkCommission)}">${money(item.parkCommission)}</td>
+              <td class="num ${signedClass(item.yandexCommission)}">${money(item.yandexCommission)}</td>
+              <td class="num ${signedClass(item.vat)}">${money(item.vat)}</td>
+              <td class="num ${signedClass(item.withholdings)}">${money(item.withholdings)}</td>
+              <td class="num ${signedClass(item.loans)}">${money(item.loans)}</td>
+              <td class="num ${signedClass(item.corrections)}">${money(item.corrections)}</td>
+              <td class="num">${pct(item.turnover ? (item.parkCommission / item.turnover) * 100 : NaN)}</td>
+            </tr>
+          `).join('') : '<tr><td class="empty" colspan="9">Загрузите отчет Яндекс, чтобы увидеть группировку по водителям.</td></tr>';
+
+        $('categoriesBody').innerHTML = categories.size ? [...categories.entries()]
+          .sort((a, b) => Math.abs(b[1].amount) - Math.abs(a[1].amount))
+          .map(([name, item]) => `
+            <tr>
+              <td>${escapeHtml(name)}</td>
+              <td class="num">${item.count.toLocaleString('ru-RU')}</td>
+              <td class="num ${signedClass(item.amount)}">${money(item.amount)}</td>
+            </tr>
+          `).join('') : '<tr><td class="empty" colspan="3">Загрузите отчет Яндекс, чтобы увидеть группировку по категориям.</td></tr>';
+
+        $('rowsBody').innerHTML = state.rows.length ? state.rows.slice(0, 500).map(row => `
+          <tr>
+            <td>${escapeHtml(row.date)}</td>
+            <td>${escapeHtml(row.event)}</td>
+            <td>${escapeHtml(row.category)}</td>
+            <td>${escapeHtml(row.comment)}</td>
+            <td class="num ${signedClass(row.amount)}">${money(row.amount)}</td>
+            <td>${escapeHtml(row.executor)}</td>
+            <td>${escapeHtml(row.initiator)}</td>
           </tr>
-        `).join('');
-
-        const totalTurn = modeled.reduce((s, r) => s + r.turnover, 0);
-        const totalActual = modeled.reduce((s, r) => s + r.actual, 0);
-        const avg = totalTurn ? (totalActual / totalTurn) * 100 : 0;
-        const lost = modeled.reduce((s, r) => s + (r.diff < 0 ? Math.abs(r.diff) : 0), 0);
-
-        $('sTurn').textContent = money(totalTurn);
-        $('sActual').textContent = money(totalActual);
-        $('sAvg').textContent = pct(avg);
-        $('sLost').textContent = money(lost);
+        `).join('') : '<tr><td class="empty" colspan="7">Загруженные операции появятся здесь.</td></tr>';
       }
 
-      $('addBtn').addEventListener('click', () => {
-        const date = $('aDate').value || new Date().toISOString().slice(0, 10);
-        const driver = $('aDriver').value.trim();
-        const car = $('aCar').value.trim();
-        const turnover = Number($('aTurnover').value) || 0;
-        const actual = Number($('aActual').value) || 0;
-        const parkPercent = Number($('aPercent').value) || 2;
+      function showNotice(message, type = 'ok') {
+        const notice = $('notice');
+        notice.textContent = message;
+        notice.className = `notice show ${type}`;
+      }
 
-        if (!driver || !car || turnover <= 0) return;
+      function csvCell(value) {
+        const text = normalize(value);
+        return /[";\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+      }
 
-        rows.push({ date, driver, car, turnover, actual, parkPercent });
-        save();
+      function exportTotalsCsv() {
+        const { totals, drivers, categories } = calculate();
+        const actualPercent = totals.turnover ? (totals.parkCommission / totals.turnover) * 100 : 0;
+        const lines = [
+          ['Раздел', 'Показатель', 'Значение'],
+          ['Итоги', 'Оборот', totals.turnover],
+          ['Итоги', 'Комиссия парка', totals.parkCommission],
+          ['Итоги', 'Комиссия Яндекс', totals.yandexCommission],
+          ['Итоги', 'НДС', totals.vat],
+          ['Итоги', 'Удержания', totals.withholdings],
+          ['Итоги', 'Займ', totals.loans],
+          ['Итоги', 'Корректировки', totals.corrections],
+          ['Итоги', 'Фактический процент парка', actualPercent],
+          [],
+          ['Водители', 'Водитель', 'Оборот', 'Комиссия парка', 'Комиссия Яндекс', 'НДС', 'Удержания', 'Займ', 'Корректировки', 'Факт. %'],
+          ...[...drivers.entries()].map(([name, item]) => ['Водители', name, item.turnover, item.parkCommission, item.yandexCommission, item.vat, item.withholdings, item.loans, item.corrections, item.turnover ? (item.parkCommission / item.turnover) * 100 : 0]),
+          [],
+          ['Категории', 'Категория', 'Количество', 'Сумма'],
+          ...[...categories.entries()].map(([name, item]) => ['Категории', name, item.count, item.amount])
+        ];
+        const csv = `\uFEFF${lines.map(line => line.map(csvCell).join(';')).join('\n')}`;
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `airakty-yandex-summary-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        URL.revokeObjectURL(link.href);
+        link.remove();
+      }
+
+      $('reportFile').addEventListener('change', async event => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+          const parsedRows = await readReportFile(file);
+          state.rows = parsedRows;
+          state.fileName = file.name;
+          state.loadedAt = new Date().toLocaleString('ru-RU');
+          saveState();
+          render();
+          showNotice(`Отчет загружен: ${parsedRows.length.toLocaleString('ru-RU')} операций.`, 'ok');
+        } catch (error) {
+          showNotice(error.message || 'Не удалось загрузить отчет.', 'bad');
+        } finally {
+          event.target.value = '';
+        }
+      });
+
+      $('clearBtn').addEventListener('click', () => {
+        if (!state.rows.length) return;
+        state.rows = [];
+        state.fileName = '';
+        state.loadedAt = '';
+        saveState();
         render();
+        showNotice('Данные очищены.', 'ok');
+      });
+
+      $('exportBtn').addEventListener('click', () => {
+        if (!state.rows.length) {
+          showNotice('Нет данных для экспорта. Сначала загрузите отчет Яндекс.', 'bad');
+          return;
+        }
+        exportTotalsCsv();
       });
 
       render();
